@@ -1,15 +1,34 @@
 'use client'
 
-import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-export default function HeadApprovalPage() {
-	const { user, leaveRequest, setLeaveRequest } = useAuth()
-	const router = useRouter()
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
+import { db } from '@/firebase' // ✅ używasz tego samego importu co wcześniej
 
-	// ✅ TYLKO HOLLY HEAD MA DOSTĘP
+type LeaveRequest = {
+	id: string
+	employeeName: string
+	employeePosition: string
+	leaveType: string
+	leaveStartDate: string
+	leaveEndDate: string
+	leaveDurationDays: string
+	leaveSubstitute: string
+	requestDate: string
+	status: string
+}
+
+export default function HeadApprovalPage() {
+	const { user } = useAuth()
+	const router = useRouter()
+	const [leaveRequest, setLeaveRequest] = useState<LeaveRequest | null>(null)
+	const [loading, setLoading] = useState(true)
+
+	// ✅ DOSTĘP TYLKO DLA HOLLY
 	if (!user || user.roleCode !== 'Head of O.U.') {
 		return (
 			<div className='p-6 text-center text-red-500 font-semibold'>
@@ -18,30 +37,51 @@ export default function HeadApprovalPage() {
 		)
 	}
 
-	// ✅ JEŚLI NIE MA WNIOSKU
+	// ✅ POBRANIE WNIOSKU Z FIRESTORE
+	useEffect(() => {
+		const fetchLeaveRequest = async () => {
+			const snapshot = await getDocs(collection(db, 'leaveRequests'))
+			const docs = snapshot.docs.map(doc => ({
+				id: doc.id,
+				...doc.data(),
+			})) as LeaveRequest[]
+
+			const submitted = docs.find(r => r.status === 'SUBMITTED')
+			setLeaveRequest(submitted || null)
+			setLoading(false)
+		}
+
+		fetchLeaveRequest()
+	}, [])
+
+	// ✅ BRAK WNIOSKU
+	if (loading) {
+		return <div className='p-6 text-center'>Loading...</div>
+	}
+
 	if (!leaveRequest) {
 		return <div className='p-6 text-center text-muted-foreground'>No leave request to review.</div>
 	}
 
-	// ✅ PRZEKAZANIE DO HR
-	const handleApprove = () => {
-		setLeaveRequest({
-			...leaveRequest,
+	// ✅ APPROVE → UPDATE W FIRESTORE
+	const handleApprove = async () => {
+		const ref = doc(db, 'leaveRequests', leaveRequest.id)
+		await updateDoc(ref, {
 			status: 'APPROVED',
 		})
 
-		alert('Leave request forwarded to HR (Penny Personnel).')
+		alert('Leave request approved and forwarded to HR.')
 		router.push('/dashboard')
 	}
 
-	// ✅ ODRZUCENIE
-	const handleReject = () => {
-		setLeaveRequest({
-			...leaveRequest,
+	// ✅ REJECT → UPDATE W FIRESTORE
+	const handleReject = async () => {
+		const ref = doc(db, 'leaveRequests', leaveRequest.id)
+		await updateDoc(ref, {
 			status: 'REJECTED',
 		})
 
-		alert('Leave request rejected by Holly Head.')
+		alert('Leave request rejected.')
 		router.push('/dashboard')
 	}
 

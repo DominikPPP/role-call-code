@@ -8,8 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
+import { db } from '@/firebase'
+import { collection, addDoc } from 'firebase/firestore'
+
 export default function LeaveRequestPage() {
-	const { user, setLeaveRequest } = useAuth() // ✅ DODANE setLeaveRequest
+	const { user } = useAuth()
 	const router = useRouter()
 
 	const [form, setForm] = useState({
@@ -21,27 +24,24 @@ export default function LeaveRequestPage() {
 		leaveDurationDays: '',
 		leaveSubstitute: '',
 		requestDate: new Date().toISOString().split('T')[0],
+		status: 'SUBMITTED',
 	})
 
 	const handleChange = (e: any) => {
 		setForm({ ...form, [e.target.name]: e.target.value })
 	}
 
-	const handleSubmit = (e: any) => {
+	const handleSubmit = async (e: any) => {
 		e.preventDefault()
 
-		// ✅ ZAPIS DO GLOBALNEGO STANU (DLA HOLLY HEAD)
-		setLeaveRequest({
-			...form,
-			status: 'SUBMITTED',
-		})
-
-		console.log('Leave request submitted:', form)
-
-		alert('Leave request submitted successfully!')
-
-		// ✅ POWRÓT NA DASHBOARD
-		router.push('/dashboard')
+		try {
+			await addDoc(collection(db, 'leaveRequests'), form)
+			alert('Leave request submitted successfully!')
+			router.push('/dashboard')
+		} catch (error) {
+			console.error(error)
+			alert('Error while sending request to Firebase')
+		}
 	}
 
 	if (!user) return null
@@ -66,7 +66,7 @@ export default function LeaveRequestPage() {
 
 						<div>
 							<Label>Leave Type</Label>
-							<Input name='leaveType' placeholder='e.g. Recreational' onChange={handleChange} required />
+							<Input name='leaveType' onChange={handleChange} required />
 						</div>
 
 						<div>
@@ -85,7 +85,7 @@ export default function LeaveRequestPage() {
 						</div>
 
 						<div>
-							<Label>Leave Substitute (optional)</Label>
+							<Label>Leave Substitute</Label>
 							<Input name='leaveSubstitute' onChange={handleChange} />
 						</div>
 
