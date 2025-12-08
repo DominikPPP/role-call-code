@@ -30,5 +30,6 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_ROLE_CALL_AI }}"
           projectId: role-call-ai
+          channelId: live
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
