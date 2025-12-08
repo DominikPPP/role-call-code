@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
 export default function LeaveRequestPage() {
-	const { user } = useAuth()
+	const { user, setLeaveRequest } = useAuth() // ✅ DODANE setLeaveRequest
 	const router = useRouter()
 
 	const [form, setForm] = useState({
@@ -30,11 +30,17 @@ export default function LeaveRequestPage() {
 	const handleSubmit = (e: any) => {
 		e.preventDefault()
 
+		// ✅ ZAPIS DO GLOBALNEGO STANU (DLA HOLLY HEAD)
+		setLeaveRequest({
+			...form,
+			status: 'SUBMITTED',
+		})
+
 		console.log('Leave request submitted:', form)
 
 		alert('Leave request submitted successfully!')
 
-		// Na tym etapie tylko wracamy do dashboardu
+		// ✅ POWRÓT NA DASHBOARD
 		router.push('/dashboard')
 	}
 

@@ -64,10 +64,24 @@ export default function DashboardPage() {
 							<p className='text-sm text-muted-foreground'>Username: {user.username}</p>
 							<p className='text-sm text-muted-foreground'>Role Code: {user.roleCode}</p>
 
-							{/* ✅ PRZYCISK URLOPU TYLKO DLA ALICE (ROLA AT) */}
+							{/* ✅ ALICE – składanie wniosku */}
 							{user.roleCode === 'AT' && (
 								<div className='pt-4'>
 									<Button onClick={() => router.push('/leave-request')}>Apply for Leave</Button>
+								</div>
+							)}
+
+							{/* ✅ HOLLY HEAD – weryfikacja */}
+							{user.roleCode === 'Head of O.U.' && (
+								<div className='pt-4'>
+									<Button onClick={() => router.push('/head-approval')}>Review Leave Request</Button>
+								</div>
+							)}
+
+							{/* ✅ PENNY PERSONNEL (PD) – FINALNA AKCEPTACJA */}
+							{user.roleCode === 'PD' && (
+								<div className='pt-4'>
+									<Button onClick={() => router.push('/hr-approval')}>HR Final Approval</Button>
 								</div>
 							)}
 						</div>
