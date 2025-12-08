@@ -70,6 +70,17 @@ export default function DashboardPage() {
 									<Button onClick={() => router.push('/leave-request')}>Apply for Leave</Button>
 								</div>
 							)}
+
+							
+							{/* PRZYCISK DO STARTOWANIA PROCESSU DECORATIONS & MEDALS */}
+							{user.roleCode === 'Head of O.U.' && (
+								<div className='pt-4'>
+									<Button onClick={() => router.push('/flows/decorations-and-medals/start')}>
+										Start Decorations and Medals
+									</Button>
+								</div>
+							)}
+
 						</div>
 					</div>
 				</CardContent>
