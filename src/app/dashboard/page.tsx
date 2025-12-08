@@ -80,7 +80,12 @@ export default function DashboardPage() {
 									</Button>
 								</div>
 							)}
-
+							{/* PRZYCISK DO MOICH ZADAŃ */}
+							<div className='pt-4'>
+								<Button onClick={() => router.push('/tasks')}>
+									My Tasks
+								</Button>
+							</div>
 						</div>
 					</div>
 				</CardContent>
