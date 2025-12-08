@@ -64,7 +64,7 @@ export default function DashboardPage() {
 							<p className='text-sm text-muted-foreground'>Username: {user.username}</p>
 							<p className='text-sm text-muted-foreground'>Role Code: {user.roleCode}</p>
 
-							{/* ✅ PRZYCISK URLOPU TYLKO DLA ALICE (ROLA AT) */}
+							{/* ✅ ALICE – składanie wniosku */}
 							{user.roleCode === 'AT' && (
 								<div className='pt-4'>
 									<Button onClick={() => router.push('/leave-request')}>Apply for Leave</Button>
