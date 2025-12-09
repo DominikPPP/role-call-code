@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -74,9 +74,9 @@ function ProcessTimeline({ currentTask, process }: { currentTask: string; proces
   );
 }
 
+export default function TaskDetails({ params }: { params: { id: string } }) {
+  const { id } = params;
 
-export default function TaskDetails(props: { params: Promise<{ id: string }> }) {
-  const { id } = use(props.params);
   const router = useRouter();
   const { user } = useAuth();
 
