@@ -12,7 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function LeaveTaskPage({ params }: { params: { id: string } }) {
+interface LeaveTaskPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function LeaveTaskPage({ params }: LeaveTaskPageProps) {
   const { id } = params;
 
   const router = useRouter();
