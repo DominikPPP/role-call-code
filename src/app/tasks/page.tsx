@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { db } from "@/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function TasksPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -17,8 +19,8 @@ export default function TasksPage() {
 
     const loadTasks = async () => {
       const q = query(
-        collection(db, 'processInstances'),
-        where('currentAssigneeRole', '==', user.roleCode)
+        collection(db, "processInstances"),
+        where("currentAssigneeRole", "==", user.roleCode)
       );
 
       const snapshot = await getDocs(q);
@@ -51,27 +53,32 @@ export default function TasksPage() {
                 className="border p-4 rounded-lg mb-4 shadow-sm"
               >
                 <p><b>Process ID:</b> {task.id}</p>
+                <p><b>Process Type:</b> {task.processType}</p>
                 <p><b>Current Task:</b> {task.currentTask}</p>
                 <p><b>Status:</b> {task.status}</p>
 
-                <Link href={`/tasks/${task.id}`}>
-                  <Button className="mt-3">Open Task</Button>
-                </Link>
+                <Button
+                  className="mt-3"
+                  onClick={() => {
+                    if (task.processType === "leave-request") {
+                      router.push(`/flows/leave-request/task/${task.id}`);
+                    } else {
+                      router.push(`/tasks/${task.id}`);
+                    }
+                  }}
+                >
+                  Open Task
+                </Button>
               </div>
             ))
           )}
         </CardContent>
       </Card>
 
-      {/* ⬇⬇⬇ JEDYNY DODANY PRZYCISK ⬇⬇⬇ */}
-      <Button
-        variant="secondary"
-        className="w-full mt-4"
-        asChild
-      >
+      {/* POWRÓT DO DASHBOARD */}
+      <Button variant="secondary" className="w-full mt-4" asChild>
         <Link href="/dashboard">Back to Dashboard</Link>
       </Button>
-
     </div>
   );
 }

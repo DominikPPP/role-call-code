@@ -67,7 +67,7 @@ export default function DashboardPage() {
 							{/* ✅ ALICE – składanie wniosku */}
 							{user.roleCode === 'AT' && (
 								<div className='pt-4'>
-									<Button onClick={() => router.push('/leave-request')}>Apply for Leave</Button>
+									<Button onClick={() => router.push('/flows/leave-request/start')}>Apply for Leave</Button>
 								</div>
 							)}
 

@@ -1,4 +1,3 @@
-
 import { db } from "@/firebase";
 import {
   collection,
@@ -13,11 +12,14 @@ import {
  */
 export async function createProcessInstance(type: string, variables: any) {
   const ref = await addDoc(collection(db, "processInstances"), {
-    processType: type,                      // "decorations-and-medals"
+    processType: type,
     status: "Running",
     createdAt: serverTimestamp(),
-    currentTask: "present-to-prk",          // pierwszy task dla PD
-    currentAssigneeRole: "PD",              // Penny Personnel
+
+    // PIERWSZY TASK → PD
+    currentTask: "present-to-prk",
+    currentAssigneeRole: "PD",
+
     variables: {
       ...variables,
       reviewer_opinion: null,
@@ -41,15 +43,16 @@ export async function completeTask(
   const ref = doc(db, "processInstances", processId);
 
   switch (currentTask) {
-    // KROK 2 → 3  (PD -> PRK)
+
+    // KROK 2 → 3  (PD → PRK)
     case "present-to-prk":
       await updateDoc(ref, {
         currentTask: "review-and-forward",
-        currentAssigneeRole: "PRK", // Paula VREdu
+        currentAssigneeRole: "PRK", // Paula
       });
       break;
 
-    // KROK 3 → 4  (PRK -> PD, zapis opinii)
+    // KROK 3 → 4  (PRK → PD)
     case "review-and-forward": {
       const reviewerOpinion =
         extra?.reviewer_opinion ?? "Strongly support";
@@ -62,26 +65,27 @@ export async function completeTask(
       break;
     }
 
-    // KROK 4 → 5  (PD -> RKR)
+    // KROK 4 → 5  (PD → RKR)
     case "present-reviewed-to-rkr":
       await updateDoc(ref, {
         currentTask: "make-decision",
-        currentAssigneeRole: "RKR", // Adam Rector
+        currentAssigneeRole: "RKR", // Rector
       });
       break;
 
-    // KROK 5 → 6 LUB KONIEC (RKR podejmuje decyzję)
+    // KROK 5 — decyzja RKR → ACCEPTED lub REJECTED
     case "make-decision": {
-      const decision = extra?.rkr_decision ?? "Accepted";
+      const decision = extra?.rkr_decision ?? "Approved";
 
-      if (decision === "Accepted") {
+      if (decision === "Approved") {
+        // przejście do MPD przez PD
         await updateDoc(ref, {
           currentTask: "forward-accepted-to-mpd",
           currentAssigneeRole: "PD",
           "variables.rkr_decision": decision,
         });
       } else {
-        // ścieżka odrzucona – kończymy proces
+        // ODRZUCENIE → koniec procesu
         await updateDoc(ref, {
           status: "Completed",
           currentTask: "ended-rejected",
@@ -93,7 +97,7 @@ export async function completeTask(
       break;
     }
 
-    // KROK 6 → 7  (PD -> MPD)
+    // KROK 6 → 7  (PD → MPD)
     case "forward-accepted-to-mpd":
       await updateDoc(ref, {
         currentTask: "handle-external-transfer",
@@ -101,7 +105,7 @@ export async function completeTask(
       });
       break;
 
-    // KROK 7 → 8  (MPD -> PD)
+    // KROK 7 → 8  (MPD → PD)
     case "handle-external-transfer":
       await updateDoc(ref, {
         currentTask: "receive-decision",
@@ -109,7 +113,7 @@ export async function completeTask(
       });
       break;
 
-    // KROK 8 → 9  (PD -> PD, przyjęcie decyzji)
+    // KROK 8 → 9 (PD → PD)
     case "receive-decision":
       await updateDoc(ref, {
         currentTask: "enter-into-register",
@@ -117,7 +121,7 @@ export async function completeTask(
       });
       break;
 
-    // KROK 9 → KONIEC (PD wpisuje do rejestru)
+    // KROK 9 → KONIEC
     case "enter-into-register": {
       const awardDate = extra?.award_grant_date ?? new Date().toISOString();
 
