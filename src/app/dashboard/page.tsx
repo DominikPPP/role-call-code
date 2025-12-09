@@ -80,12 +80,22 @@ export default function DashboardPage() {
 									</Button>
 								</div>
 							)}
+
+							<Button
+							onClick={() => router.push("/flows/change-of-employment/start")}
+							className="mt-2"
+							>
+							Start Change of Employment
+							</Button>
+
 							{/* PRZYCISK DO MOICH ZADAŃ */}
 							<div className='pt-4'>
 								<Button onClick={() => router.push('/tasks')}>
 									My Tasks
 								</Button>
 							</div>
+
+
 						</div>
 					</div>
 				</CardContent>
