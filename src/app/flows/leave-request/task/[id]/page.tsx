@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/firebase";
@@ -12,10 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { use } from "react";
-
-export default function LeaveTaskPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function LeaveTaskPage(props: { params: Promise<{ id: string }> }) {
+  const { id } = use(props.params);
   const router = useRouter();
   const { user } = useAuth();
 
