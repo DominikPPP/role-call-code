@@ -20,8 +20,8 @@ interface LeaveTaskPageProps {
   };
 }
 
-export default function LeaveTaskPage({ params }: LeaveTaskPageProps) {
-  const { id } = params;
+export default async function LeaveTaskPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const router = useRouter();
   const { user } = useAuth();

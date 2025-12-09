@@ -74,8 +74,8 @@ function ProcessTimeline({ currentTask, process }: { currentTask: string; proces
   );
 }
 
-export default function TaskDetails({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function TaskDetails({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const router = useRouter();
   const { user } = useAuth();

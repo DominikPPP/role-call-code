@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function LeaveTask({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function LeaveTask({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const router = useRouter();
   const { user } = useAuth();
 
