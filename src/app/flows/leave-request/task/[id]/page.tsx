@@ -1,7 +1,6 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const dynamicParams = true;
 
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,14 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-interface LeaveTaskPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function LeaveTaskPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default function LeaveTaskPage() {
+  // 🔥 Najbezpieczniejsza i wspierana metoda w Next.js 15
+  const params = useParams();
+  const id = params?.id as string;
 
   const router = useRouter();
   const { user } = useAuth();
@@ -35,7 +30,9 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
   useEffect(() => {
     async function load() {
       const snap = await getDoc(doc(db, "processInstances", id));
-      if (snap.exists()) setTaskData(snap.data());
+      if (snap.exists()) {
+        setTaskData(snap.data());
+      }
       setLoading(false);
     }
     load();
@@ -74,7 +71,9 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
     }
 
     const result = await completeLeaveTask(id, task, extra);
-    if (result.success) router.push("/tasks");
+    if (result.success) {
+      router.push("/tasks");
+    }
   }
 
   if (loading) return <p className="p-6">Loading...</p>;
@@ -96,7 +95,6 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
         <p><b>Duration:</b> {v.duration} days</p>
       </div>
 
-      {/* HEAD APPROVAL */}
       {task === "head-approval" && (
         <>
           <Label>Head Decision</Label>
@@ -111,14 +109,10 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
         </>
       )}
 
-      {/* PD REVIEW */}
       {task === "pd-review" && (
         <>
           <Label>PD Notes</Label>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
 
           <Label>PD Decision</Label>
           <select
@@ -132,7 +126,6 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
         </>
       )}
 
-      {/* PRK REVIEW */}
       {task === "prk-review" && (
         <>
           <Label>PRK Decision</Label>
@@ -147,7 +140,6 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
         </>
       )}
 
-      {/* PRN REVIEW */}
       {task === "prn-review" && (
         <>
           <Label>PRN Decision</Label>
@@ -162,7 +154,6 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
         </>
       )}
 
-      {/* RKR FINAL DECISION */}
       {task === "rkr-decision" && (
         <>
           <Label>Final Decision (RKR)</Label>
@@ -177,20 +168,13 @@ export default async function LeaveTaskPage({ params }: { params: Promise<{ id: 
         </>
       )}
 
-      {/* HR REGISTER */}
-      {task === "hr-register" && (
-        <p>This request is ready to be registered by HR.</p>
-      )}
+      {task === "hr-register" && <p>This request is ready to be registered by HR.</p>}
 
       <Button onClick={handleComplete} className="w-full">
         Complete Task
       </Button>
 
-      <Button
-        variant="secondary"
-        className="w-full"
-        onClick={() => router.push("/tasks")}
-      >
+      <Button variant="secondary" className="w-full" onClick={() => router.push("/tasks")}>
         Back
       </Button>
     </div>

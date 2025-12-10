@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/firebase";
@@ -15,7 +16,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function ProcessTimeline({ currentTask, process }: { currentTask: string; process: string }) {
+function ProcessTimeline({
+  currentTask,
+  process,
+}: {
+  currentTask: string;
+  process: string;
+}) {
   const steps =
     process === "change-of-employment"
       ? [
@@ -51,9 +58,7 @@ function ProcessTimeline({ currentTask, process }: { currentTask: string; proces
 
           return (
             <li key={s.id} className="flex items-center">
-              <span className="mr-2">
-                {isDone ? "●" : isCurrent ? "○" : "○"}
-              </span>
+              <span className="mr-2">{isDone ? "●" : "○"}</span>
               <span
                 className={
                   isDone
@@ -74,8 +79,13 @@ function ProcessTimeline({ currentTask, process }: { currentTask: string; proces
   );
 }
 
-export default async function TaskDetails({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+// ******************************************************************
+//  ✔ POPRAWIONA SEKCJA — komponent NIE jest async, params NIE są Promise
+// ******************************************************************
+
+export default function TaskDetails() {
+  // 🔥 Najważniejsza poprawka:
+  const { id } = useParams() as { id: string };
 
   const router = useRouter();
   const { user } = useAuth();
@@ -83,7 +93,6 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
   const [taskData, setTaskData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // form fields shared across tasks
   const [textValue, setTextValue] = useState("");
   const [decisionValue, setDecisionValue] = useState("Approved");
 
@@ -96,8 +105,7 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
-        const data = snap.data();
-        setTaskData(data);
+        setTaskData(snap.data());
       }
 
       setLoading(false);
@@ -107,7 +115,7 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
   }, [id]);
 
   // -------------------------------------------------------
-  // COMPLETE TASK (dynamic handler)
+  // COMPLETE TASK HANDLER
   // -------------------------------------------------------
   async function handleComplete() {
     if (!taskData) return;
@@ -133,13 +141,18 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
     // change-of-employment
     if (process === "change-of-employment") {
       if (task === "head-approval") extra.status = decisionValue;
+
       if (task === "pd-review") {
         extra.pd_review_status = decisionValue;
         extra.is_academic_teacher = true;
       }
+
       if (task === "kwe-review") extra.kwe_financial_opinion = decisionValue;
+
       if (task === "prk-review") extra.prk_opinion = textValue;
+
       if (task === "prn-review") extra.prn_opinion = textValue;
+
       if (task === "rector-decision") extra.final_decision = decisionValue;
 
       const result = await completeTaskChangeEmployment(id, task, extra);
@@ -160,26 +173,40 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
   const process = taskData.processType;
 
   // -------------------------------------------------------------------------------------
-  // RENDER: COMMON TASK DATA
+  // RENDER COMMON DATA
   // -------------------------------------------------------------------------------------
   function renderCommonData() {
     return (
       <div className="border p-4 rounded-lg mb-4">
-        <p><b>Employee Name:</b> {v.employee_name}</p>
+        <p>
+          <b>Employee Name:</b> {v.employee_name}
+        </p>
 
         {process === "decorations-and-medals" && (
           <>
-            <p><b>Organizational Unit:</b> {v.organizational_unit}</p>
-            <p><b>Decoration Type:</b> {v.decoration_type}</p>
-            <p><b>Justification:</b> {v.application_justification}</p>
+            <p>
+              <b>Organizational Unit:</b> {v.organizational_unit}
+            </p>
+            <p>
+              <b>Decoration Type:</b> {v.decoration_type}
+            </p>
+            <p>
+              <b>Justification:</b> {v.application_justification}
+            </p>
           </>
         )}
 
         {process === "change-of-employment" && (
           <>
-            <p><b>Proposed Conditions:</b> {v.proposed_conditions}</p>
-            <p><b>Justification:</b> {v.change_justification}</p>
-            <p><b>Effective Date:</b> {v.change_effective_date}</p>
+            <p>
+              <b>Proposed Conditions:</b> {v.proposed_conditions}
+            </p>
+            <p>
+              <b>Justification:</b> {v.change_justification}
+            </p>
+            <p>
+              <b>Effective Date:</b> {v.change_effective_date}
+            </p>
           </>
         )}
       </div>
@@ -187,20 +214,19 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
   }
 
   // -------------------------------------------------------------------------------------
-  // RENDER: TASK-SPECIFIC UI FOR BOTH PROCESSES
+  // RENDER TASK FORM
   // -------------------------------------------------------------------------------------
-
   function renderTaskForm() {
-    //
-    // 🎖 DECORATIONS PROCESS
-    //
     if (process === "decorations-and-medals") {
       switch (task) {
         case "review-and-forward":
           return (
             <>
               <Label>Reviewer Opinion</Label>
-              <Textarea value={textValue} onChange={(e) => setTextValue(e.target.value)} />
+              <Textarea
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+              />
             </>
           );
 
@@ -224,9 +250,6 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
       }
     }
 
-    //
-    // 🧾 CHANGE OF EMPLOYMENT PROCESS (NOWY)
-    //
     if (process === "change-of-employment") {
       switch (task) {
         case "head-approval":
@@ -252,7 +275,10 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
           return (
             <>
               <Label>Opinion</Label>
-              <Textarea value={textValue} onChange={(e) => setTextValue(e.target.value)} />
+              <Textarea
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+              />
             </>
           );
 
@@ -268,9 +294,7 @@ export default async function TaskDetails({ params }: { params: Promise<{ id: st
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">
-
       <ProcessTimeline currentTask={task} process={process} />
-
 
       <Card>
         <CardHeader>
