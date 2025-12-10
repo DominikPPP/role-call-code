@@ -13,8 +13,55 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+// ---------------- PROCESS TIMELINE ----------------
+
+function ProcessTimeline({ currentTask }: { currentTask: string }) {
+  const steps = [
+    { id: "head-approval", label: "Head Approval" },
+    { id: "pd-review", label: "PD Review" },
+    { id: "prk-review", label: "PRK Review" },
+    { id: "prn-review", label: "PRN Review" },
+    { id: "rkr-decision", label: "Rector Decision" },
+    { id: "hr-register", label: "HR Register" }
+  ];
+
+  const index = steps.findIndex((s) => s.id === currentTask);
+
+  return (
+    <div className="mb-6 p-4 border rounded-lg bg-white shadow-sm">
+      <h3 className="font-semibold mb-3">Process Timeline</h3>
+
+      <ul className="space-y-1">
+        {steps.map((s, i) => {
+          const isDone = i < index;
+          const isCurrent = i === index;
+
+          return (
+            <li key={s.id} className="flex items-center">
+              <span className="mr-2">{isDone ? "●" : "○"}</span>
+              <span
+                className={
+                  isDone
+                    ? "line-through opacity-60"
+                    : isCurrent
+                    ? "font-bold"
+                    : "opacity-60"
+                }
+              >
+                {s.label}
+                {isCurrent && " (current)"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+// ---------------- MAIN PAGE ----------------
+
 export default function LeaveTaskPage() {
-  // 🔥 Najbezpieczniejsza i wspierana metoda w Next.js 15
   const params = useParams();
   const id = params?.id as string;
 
@@ -44,9 +91,7 @@ export default function LeaveTaskPage() {
     const task = taskData.currentTask;
     const extra: any = {};
 
-    if (task === "head-approval") {
-      extra.manager_decision = decisionValue;
-    }
+    if (task === "head-approval") extra.manager_decision = decisionValue;
 
     if (task === "pd-review") {
       extra.pd_notes = notes;
@@ -54,26 +99,17 @@ export default function LeaveTaskPage() {
       extra.is_academic_teacher = true;
     }
 
-    if (task === "prk-review") {
-      extra.prk_review = decisionValue;
-    }
+    if (task === "prk-review") extra.prk_review = decisionValue;
 
-    if (task === "prn-review") {
-      extra.prn_review = decisionValue;
-    }
+    if (task === "prn-review") extra.prn_review = decisionValue;
 
-    if (task === "rkr-decision") {
-      extra.final_decision = decisionValue;
-    }
+    if (task === "rkr-decision") extra.final_decision = decisionValue;
 
-    if (task === "hr-register") {
-      extra.registered = true;
-    }
+    if (task === "hr-register") extra.registered = true;
 
     const result = await completeLeaveTask(id, task, extra);
-    if (result.success) {
-      router.push("/tasks");
-    }
+
+    if (result.success) router.push("/tasks");
   }
 
   if (loading) return <p className="p-6">Loading...</p>;
@@ -85,6 +121,10 @@ export default function LeaveTaskPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
+
+      {/* 🔥 NOWY ELEMENT — identyczny jak w innych procesach */}
+      <ProcessTimeline currentTask={task} />
+
       <h2 className="text-2xl font-bold capitalize">{task}</h2>
 
       <div className="border p-4 rounded-lg space-y-1">
@@ -95,6 +135,7 @@ export default function LeaveTaskPage() {
         <p><b>Duration:</b> {v.duration} days</p>
       </div>
 
+      {/* DYNAMIC TASK UI */}
       {task === "head-approval" && (
         <>
           <Label>Head Decision</Label>
@@ -168,13 +209,19 @@ export default function LeaveTaskPage() {
         </>
       )}
 
-      {task === "hr-register" && <p>This request is ready to be registered by HR.</p>}
+      {task === "hr-register" && (
+        <p>This request is ready to be registered by HR.</p>
+      )}
 
       <Button onClick={handleComplete} className="w-full">
         Complete Task
       </Button>
 
-      <Button variant="secondary" className="w-full" onClick={() => router.push("/tasks")}>
+      <Button
+        variant="secondary"
+        className="w-full"
+        onClick={() => router.push("/tasks")}
+      >
         Back
       </Button>
     </div>

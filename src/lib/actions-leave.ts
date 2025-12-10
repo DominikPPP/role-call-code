@@ -12,7 +12,7 @@ export async function completeLeaveTask(id: string, task: string, extra: any) {
   const data = snap.data();
   const currentVars = data.variables || {};
 
-  // 🔄 MERGE – NIE NADPISUJEMY CAŁEGO "variables", tylko dokładamy swoje pola
+  // 🔄 MERGE VARIABLES — dokładamy nowe zmienne
   const newVars = {
     ...currentVars,
     ...extra,
@@ -27,61 +27,63 @@ export async function completeLeaveTask(id: string, task: string, extra: any) {
     }),
   };
 
-  // 🔁 PRZEJŚCIA MIĘDZY ZADANIAMI – dokładnie wg scenariusza
+  // ----------------------------------------
+  // 🔥 LOGIKA PRZEPŁYWU ZADAŃ
+  // ----------------------------------------
 
   switch (task) {
     case "head-approval":
-      // Head of O.U. → PD
-      // extra.head_ou_decision = "Approved" / "Rejected"
+      // Head O.U. → PD
       update.currentTask = "pd-review";
       update.currentAssigneeRole = "PD";
       break;
 
     case "pd-review":
-      // PD sprawdza uprawnienia
-      // extra.pd_review_status = "Entitlement Confirmed" / ...
-      // extra.is_academic_teacher = true/false
+      // PD weryfikuje czy nauczyciel akademicki
       if (extra.is_academic_teacher) {
         update.currentTask = "prk-review";
         update.currentAssigneeRole = "PRK";
       } else {
-        // ścieżka nieakademicka – dla bezpieczeństwa puszczamy od razu do Rektora
-        update.currentTask = "rector-decision";
+        // ścieżka dla pracowników nieakademickich
+        update.currentTask = "rkr-decision";
         update.currentAssigneeRole = "RKR";
       }
       break;
 
     case "prk-review":
       // PRK → PRN
-      // extra.prk_review_status = "Approved" / ...
       update.currentTask = "prn-review";
       update.currentAssigneeRole = "PRN";
       break;
 
     case "prn-review":
       // PRN → Rektor
-      // extra.prn_review_status = "Approved" / ...
-      update.currentTask = "rector-decision";
+      update.currentTask = "rkr-decision";
       update.currentAssigneeRole = "RKR";
       break;
 
-    case "rector-decision":
-      // Rektor → PD (inform OU)
-      // extra.final_decision = "Approved" / ...
+    case "rkr-decision":
+      // 🔥 REKTOR ODMAWIA — KONIEC PROCESU
+      if (extra.final_decision === "Rejected") {
+        update.currentTask = "completed";
+        update.currentAssigneeRole = null;
+        update.status = "Rejected";
+        break;
+      }
+
+      // 🔥 REKTOR ZATWIERDZA → PD informuje kierownika O.U.
       update.currentTask = "pd-inform-ou";
       update.currentAssigneeRole = "PD";
       break;
 
     case "pd-inform-ou":
-      // PD informuje kierownika OU → potem rejestracja
-      // extra.pd_notified_head = true
+      // PD ostatecznie informuje Head of O.U. → przechodzi do rejestracji
       update.currentTask = "pd-register";
       update.currentAssigneeRole = "PD";
       break;
 
     case "pd-register":
-      // PD rejestruje urlop w systemie HR
-      // extra.registered = true
+      // 🔥 KONIEC PROCESU (zatwierdzony urlop)
       update.currentTask = "completed";
       update.currentAssigneeRole = null;
       update.status = "Completed";
@@ -91,6 +93,10 @@ export async function completeLeaveTask(id: string, task: string, extra: any) {
       break;
   }
 
+  // ----------------------------------------
+  // 📝 Zapis do Firestore
+  // ----------------------------------------
   await updateDoc(ref, update);
+
   return { success: true };
 }
